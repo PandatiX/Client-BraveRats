@@ -1,7 +1,7 @@
 #include "Window.hpp"
 #include "exceptions/WindowException.hpp"
 
-Window::Window(std::string title, int height, int width) {
+Window::Window(const std::string& title, int height, int width) {
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

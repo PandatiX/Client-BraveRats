@@ -10,7 +10,7 @@ private:
     GLFWwindow* handle;
 
 public:
-    Window(std::string, int, int);
+    Window(const std::string&, int, int);
 
     void swapBuffers();
     void close();
