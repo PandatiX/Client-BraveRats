@@ -17,7 +17,7 @@ void Terminal::sendMessage(int fd, const std::string& outputString) {
     send(fd, sMsg.c_str(), sMsg.length()+1, MSG_NOSIGNAL);
 }
 
-Terminal::Terminal() : running(true), inGame(false), sockfd(0) {}
+Terminal::Terminal(Game* game) : game(game), running(true), inGame(false), sockfd(0) {}
 
 void Terminal::sendMessage(const std::string& outputString) {
     if (isConnectedServer()) {
@@ -115,6 +115,36 @@ void Terminal::start(Terminal *_this, std::string *games) {
 
                 *games = buffer;
                 _this->barrierGMLS.wait();
+
+            } else if (buffer.substr(0, 4) == "CRDD") {
+
+                if (buffer.size() > 5) {
+
+                    try {
+
+                        nlohmann::json j = nlohmann::json::parse(buffer.substr(5)),
+                                jArrSelf = j["self"],
+                                jArrOther = j["other"];
+
+                        if (jArrSelf.size() == 8 && jArrOther.size() == 8) {
+                            int cardsSelf[8], cardsOther[8];
+                            for (int i = 0; i < 8; i++) {
+                                cardsSelf[i] = jArrSelf[i];
+                                cardsOther[i] = jArrOther[i];
+                            }
+
+                            _this->game->setCardsSelf(cardsSelf);
+                            _this->game->setCardsOther(cardsOther);
+                        } else {
+                            std::cerr << "Not enough cards" << std::endl;
+                        }
+
+
+                    } catch (const nlohmann::json::exception& e) {
+                        std::cerr << "Unable to parse " << buffer << std::endl;
+                    }
+
+                }
 
             } else if (buffer.substr(0, 4) == "REVD") {
 

@@ -15,7 +15,7 @@ void textWithDetailDisplay(const char* main, const char* detail) {
     ImGui::TextColored(ImVec4(0.22f, 0.26f, 0.33f, 1.0f), "\t\t%s", detail);
 }
 
-Application::Application() : window(appName, 1920, 1080), terminal() {}
+Application::Application() : game(), window(&game, appName, 1920, 1080), terminal(&game) {}
 
 void Application::loop() {
 
@@ -178,6 +178,22 @@ void Application::loop() {
                         textWithDetailDisplay("402", "GAME_RESTARTED");
                         textWithDetailDisplay("403", "ACCESS_DENIED");
                         textWithDetailDisplay("404", "GAME_STARTED");
+
+                        ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("Cards")) {
+
+                        int *cardsSelf = game.getCardsSelf();
+                        titleDisplay("SELF CARDS");
+                        for (int i = 0; i < 8; i++) {
+                            ImGui::Text("%s", std::to_string(cardsSelf[i]).c_str());
+                        }
+
+                        int *cardsOther = game.getCardsOther();
+                        titleDisplay("OTHER CARDS");
+                        for (int i = 0; i < 8; i++) {
+                            ImGui::Text("%s", std::to_string(cardsOther[i]).c_str());
+                        }
 
                         ImGui::EndTabItem();
                     }

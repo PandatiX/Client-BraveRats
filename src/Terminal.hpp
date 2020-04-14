@@ -11,9 +11,12 @@
 #include <mutex>
 #include <netinet/in.h>
 #include "barriers/BarrierGMLS.hpp"
+#include "Game.hpp"
 
 class Terminal {
 private:
+    Game* game;
+
     BarrierGMLS barrierGMLS;
     std::string games;
     std::thread thread;
@@ -26,7 +29,7 @@ private:
     void sendMessage(int, const std::string&);
 
 public:
-    Terminal();
+    Terminal(Game* game);
 
     static void start(Terminal*, std::string *);
     int connectServer(in_addr_t, uint16_t);

@@ -4,13 +4,15 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "Game.hpp"
 
 class Window {
 private:
     GLFWwindow* handle;
+    Game* game;
 
 public:
-    Window(const std::string&, int, int);
+    Window(Game* game, const std::string&, int, int);
 
     void swapBuffers();
     void close();
