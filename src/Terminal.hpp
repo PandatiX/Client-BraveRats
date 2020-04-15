@@ -10,14 +10,14 @@
 #include <list>
 #include <mutex>
 #include <netinet/in.h>
-#include "barriers/BarrierGMLS.hpp"
+#include "barriers/Barrier.hpp"
 #include "Game.hpp"
 
 class Terminal {
 private:
     Game* game;
 
-    BarrierGMLS barrierGMLS;
+    Barrier barrierGMLS;
     std::string games;
     std::thread thread;
     std::mutex mutexHistory;

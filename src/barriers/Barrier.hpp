@@ -1,22 +1,22 @@
-#ifndef CLIENTBRAVERATS_BARRIERGMLS_HPP
-#define CLIENTBRAVERATS_BARRIERGMLS_HPP
+#ifndef CLIENTBRAVERATS_BARRIER_HPP
+#define CLIENTBRAVERATS_BARRIER_HPP
 
 #include <mutex>
 #include <condition_variable>
 
-class BarrierGMLS {
+class Barrier {
 private:
-    int counter, waiting;
+    int counter, waiting, thread_count;
     std::mutex m;
     std::condition_variable cv;
 
 public:
-    BarrierGMLS() : counter(0), waiting(0) {}
+    Barrier(int _thread_count) : counter(0), waiting(0), thread_count(_thread_count) {}
     void wait() {
         std::unique_lock<std::mutex> lk(m);
         ++counter;
         ++waiting;
-        cv.wait(lk, [&]{ return counter >= 2; });
+        cv.wait(lk, [&]{ return counter >= thread_count; });
         if (--waiting == 0)
             counter = 0;
         cv.notify_one();
@@ -24,4 +24,4 @@ public:
     }
 };
 
-#endif //CLIENTBRAVERATS_BARRIERGMLS_HPP
+#endif //CLIENTBRAVERATS_BARRIER_HPP
