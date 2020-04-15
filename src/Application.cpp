@@ -114,6 +114,7 @@ void Application::loop() {
 
                         if (ImGui::Button("Disconnect")) {
                             terminal.disconnectServer();
+                            terminal.clearHistory();
                             resetConnectionSettings = true;
                             refreshOnOpen = true;
                         }
