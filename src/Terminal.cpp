@@ -55,21 +55,36 @@ int Terminal::connectServer(in_addr_t IP, uint16_t port) {
         return EXIT_FAILURE;
     } else {
         std::cout << "[+] Connected to Server." << std::endl;
-        std::thread(start, this, &games).detach();
+        running = true;
+        thread = std::thread(start, this, &games);
     }
 
     return EXIT_SUCCESS;
 
 }
 
+int getSO_ERROR(int fd) {
+    int err = 1;
+    socklen_t len = sizeof err;
+    if (-1 == getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&err, &len))
+        std::cerr << "[FATAL ERROR] getSO_ERROR" << std::endl;
+    if (err)
+        errno = err;              // set errno to the socket SO_ERROR
+    return err;
+}
+
 void Terminal::disconnectServer() {
 
     if (isConnectedServer()) {
-        std::cout << "Disconnected" << std::endl;
-        close(sockfd);
+        getSO_ERROR(sockfd);
+        if (shutdown(sockfd, SHUT_RDWR) < 0)
+            if (errno != ENOTCONN && errno != EINVAL)
+                std::cerr << "Shutdown" << std::endl;
+        if (close(sockfd) < 0)
+            std::cerr << "Close" << std::endl;
+        thread.join();
         sockfd = 0;
         inGame = false;
-        running = false;
     }
 
 }
@@ -111,6 +126,11 @@ void Terminal::start(Terminal *_this, std::string *games) {
                 stream << "PNTS" << std::endl;
                 _this->sendMessage(stream.str());
 
+            } else if (buffer.substr(0, 4) == "PNTS") {
+
+                stream << "CRDH 1" << std::endl;
+                _this->sendMessage(stream.str());
+
             } else if (buffer.substr(0, 4) == "GMLS") {
 
                 *games = buffer;
@@ -139,6 +159,35 @@ void Terminal::start(Terminal *_this, std::string *games) {
                             std::cerr << "Not enough cards" << std::endl;
                         }
 
+                    } catch (const nlohmann::json::exception& e) {
+                        std::cerr << "Unable to parse " << buffer << std::endl;
+                    }
+
+                }
+
+            } else if (buffer.substr(0, 4) == "CRDH") {
+
+                if (buffer.size() > 5) {
+
+                    try {
+
+                        nlohmann::json j = nlohmann::json::parse(buffer.substr(5))["play"][0];
+                        int *cardsSelf = _this->game->getCardsSelf();
+                        int *cardsOther = _this->game->getCardsOther();
+
+                        int cardPlayedSelf = j["self"];
+                        int cardPlayedOther = j["other"];
+
+                        if (cardPlayedSelf >= 0 && cardPlayedSelf < 8 && cardPlayedOther >= 0 && cardPlayedOther < 8) {
+
+                            cardsSelf[j["self"]]--;
+                            cardsOther[j["other"]]--;
+
+                            _this->game->setCardsSelf(cardsSelf);
+                            _this->game->setCardsOther(cardsOther);
+
+                        } else
+                            std::cerr << "Bad cards index in CRDH" << std::endl;
 
                     } catch (const nlohmann::json::exception& e) {
                         std::cerr << "Unable to parse " << buffer << std::endl;

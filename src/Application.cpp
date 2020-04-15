@@ -181,6 +181,7 @@ void Application::loop() {
 
                         ImGui::EndTabItem();
                     }
+                    /***** CARDS TAB *****/
                     if (ImGui::BeginTabItem("Cards")) {
 
                         int *cardsSelf = game.getCardsSelf();
