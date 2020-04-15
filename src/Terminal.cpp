@@ -266,4 +266,6 @@ void Terminal::clearHistory() {
     mutexHistory.unlock();
 }
 
-Terminal::~Terminal() = default;
+Terminal::~Terminal() {
+    disconnectServer();
+}
