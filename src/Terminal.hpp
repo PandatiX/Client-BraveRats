@@ -39,8 +39,8 @@ public:
     void addHistory(const std::string&);
     void clearHistory();
 
-    bool isConnectedServer();
-    bool isInGame();
+    bool isConnectedServer() const;
+    bool isInGame() const;
     std::list<std::string> getHistory();
     std::list<std::string> getGames();
 

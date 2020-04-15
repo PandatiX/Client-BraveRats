@@ -234,11 +234,11 @@ void Terminal::addHistory(const std::string& s) {
     mutexHistory.unlock();
 }
 
-bool Terminal::isConnectedServer() {
+bool Terminal::isConnectedServer() const {
     return (sockfd != 0);
 }
 
-bool Terminal::isInGame() {
+bool Terminal::isInGame() const {
     return inGame;
 }
 
