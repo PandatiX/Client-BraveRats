@@ -1,4 +1,4 @@
-#Client BraveRats
+# Client BraveRats
 Client BraveRats is a C/C++11 client prototype to play BraveRats.
 
 ## Dependencies
