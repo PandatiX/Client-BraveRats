@@ -12,8 +12,8 @@ public:
     int* getCardsSelf();
     int* getCardsOther();
 
-    void setCardsSelf(int*);
-    void setCardsOther(int*);
+    void setCardsSelf(const int*);
+    void setCardsOther(const int*);
 
     ~Game() = default;
 };
