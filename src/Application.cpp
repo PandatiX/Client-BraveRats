@@ -47,9 +47,11 @@ void Application::loop() {
     ImGui_ImplGlfw_InitForOpenGL(window.getHandle(), true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    char bufTerminal[10], bufIP[16], bufPort[8];
+    char bufTerminal[16]{}, bufIP[16]{}, bufPort[8]{};
     std::list<std::string> games;
-    bool resetConnectionSettings = true, refreshOnOpen = true, cantConnectMessage = false;
+    bool resetConnectionSettings = true,
+        refreshOnOpen = true,
+        cantConnectMessage = false;
 
     while (!window.shouldClose()) {
 
@@ -117,6 +119,7 @@ void Application::loop() {
                             terminal.clearHistory();
                             resetConnectionSettings = true;
                             refreshOnOpen = true;
+                            strncpy(bufTerminal, "", 1);
                         }
 
                         ImGui::BeginChild("Scrolling");
@@ -137,8 +140,10 @@ void Application::loop() {
                         }
                         ImGui::SameLine();
                         if (ImGui::Button("Send")) {
-                            terminal.sendMessage(std::string(bufTerminal));
-                            bzero(bufTerminal, sizeof(bufTerminal));
+                            if (!std::string(bufTerminal).empty()) {
+                                terminal.sendMessage(std::string(bufTerminal));
+                                bzero(bufTerminal, sizeof(bufTerminal));
+                            }
                         }
 
                         ImGui::EndTabItem();

@@ -110,102 +110,118 @@ void Terminal::start(Terminal *_this, std::string *games) {
 
                     std::cerr << "Buffer length too short" << std::endl;
 
-                } else if (buffer.substr(0, 4) == "WONP") {
+                } else {
 
-                    stream << "PNTS" << std::endl;
-                    _this->sendMessage(stream.str());
+                    std::basic_string<char> keyword = buffer.substr(0, 4);
 
-                } else if (buffer.substr(0, 4) == "PNTS") {
+                    if (keyword == "WONP") {
 
-                    stream << "CRDH 1" << std::endl;
-                    _this->sendMessage(stream.str());
+                        bool sendPNTS = true;
+                        if (buffer.size() >= 12) {
+                            std::cout << buffer.substr(7, 5);
+                            if (buffer.substr(7, 5) == "FINAL") {
+                                sendPNTS = false;
+                            }
+                        }
+                        if (sendPNTS) {
+                            stream << "PNTS" << std::endl;
+                            _this->sendMessage(stream.str());
+                        }
 
-                } else if (buffer.substr(0, 4) == "GMLS") {
+                    } else if (keyword == "PNTS") {
 
-                    *games = buffer;
-                    _this->barrierGMLS.wait();
+                        stream << "CRDH 1" << std::endl;
+                        _this->sendMessage(stream.str());
 
-                } else if (buffer.substr(0, 4) == "CRDD") {
+                    } else if (keyword == "GMLS") {
 
-                    if (buffer.size() > 5) {
+                        *games = buffer;
+                        _this->barrierGMLS.wait();
 
-                        try {
+                    } else if (keyword == "CRDD") {
 
-                            nlohmann::json j = nlohmann::json::parse(buffer.substr(5)),
-                                    jArrSelf = j["self"],
-                                    jArrOther = j["other"];
+                        if (buffer.size() > 5) {
 
-                            if (jArrSelf.size() == 8 && jArrOther.size() == 8) {
-                                int cardsSelf[8], cardsOther[8];
-                                for (int i = 0; i < 8; i++) {
-                                    cardsSelf[i] = jArrSelf[i];
-                                    cardsOther[i] = jArrOther[i];
+                            try {
+
+                                nlohmann::json j = nlohmann::json::parse(buffer.substr(5)),
+                                        jArrSelf = j["self"],
+                                        jArrOther = j["other"];
+
+                                if (jArrSelf.size() == 8 && jArrOther.size() == 8) {
+                                    int cardsSelf[8], cardsOther[8];
+                                    for (int i = 0; i < 8; i++) {
+                                        cardsSelf[i] = jArrSelf[i];
+                                        cardsOther[i] = jArrOther[i];
+                                    }
+
+                                    _this->game->setCardsSelf(cardsSelf);
+                                    _this->game->setCardsOther(cardsOther);
+                                } else {
+                                    std::cerr << "Not enough cards" << std::endl;
                                 }
 
-                                _this->game->setCardsSelf(cardsSelf);
-                                _this->game->setCardsOther(cardsOther);
-                            } else {
-                                std::cerr << "Not enough cards" << std::endl;
+                            } catch (const nlohmann::json::exception &e) {
+                                std::cerr << "Unable to parse " << buffer << std::endl;
                             }
 
-                        } catch (const nlohmann::json::exception &e) {
-                            std::cerr << "Unable to parse " << buffer << std::endl;
                         }
 
-                    }
+                    } else if (keyword == "CRDH") {
 
-                } else if (buffer.substr(0, 4) == "CRDH") {
+                        if (buffer.size() > 5) {
 
-                    if (buffer.size() > 5) {
+                            try {
 
-                        try {
+                                nlohmann::json j = nlohmann::json::parse(buffer.substr(5))["play"][0];
+                                int *cardsSelf = _this->game->getCardsSelf();
+                                int *cardsOther = _this->game->getCardsOther();
 
-                            nlohmann::json j = nlohmann::json::parse(buffer.substr(5))["play"][0];
-                            int *cardsSelf = _this->game->getCardsSelf();
-                            int *cardsOther = _this->game->getCardsOther();
+                                int cardPlayedSelf = j["self"];
+                                int cardPlayedOther = j["other"];
 
-                            int cardPlayedSelf = j["self"];
-                            int cardPlayedOther = j["other"];
+                                if (cardPlayedSelf >= 0 && cardPlayedSelf < 8
+                                    && cardPlayedOther >= 0 && cardPlayedOther < 8
+                                    && cardsSelf[cardPlayedSelf] > 0
+                                    && cardsOther[cardPlayedOther] > 0) {
 
-                            if (cardPlayedSelf >= 0 && cardPlayedSelf < 8
-                                && cardPlayedOther >= 0 && cardPlayedOther < 8
-                                && cardsSelf[cardPlayedSelf] > 0
-                                && cardsOther[cardPlayedOther] > 0) {
+                                    cardsSelf[j["self"]]--;
+                                    cardsOther[j["other"]]--;
 
-                                cardsSelf[j["self"]]--;
-                                cardsOther[j["other"]]--;
+                                    _this->game->setCardsSelf(cardsSelf);
+                                    _this->game->setCardsOther(cardsOther);
 
-                                _this->game->setCardsSelf(cardsSelf);
-                                _this->game->setCardsOther(cardsOther);
+                                } else
+                                    std::cerr << "Bad cards index in CRDH" << std::endl;
 
-                            } else
-                                std::cerr << "Bad cards index in CRDH" << std::endl;
+                            } catch (const nlohmann::json::exception &e) {
+                                std::cerr << "Unable to parse " << buffer << std::endl;
+                            }
 
-                        } catch (const nlohmann::json::exception &e) {
-                            std::cerr << "Unable to parse " << buffer << std::endl;
                         }
 
-                    }
+                    } else if (keyword == "REVD") {
 
-                } else if (buffer.substr(0, 4) == "REVD") {
+                        if (buffer.size() > 5) {
 
-                    if (buffer.size() > 5) {
+                            int code = (int) strtol(buffer.substr(5).c_str(), NULL, 10);
+                            switch (code) {
+                                case 401:
+                                    _this->inGame = false;
+                                    break;
+                                case 404:
+                                    _this->inGame = true;
+                                    break;
+                                default:
+                                    break;
+                            }
 
-                        int code = (int) strtol(buffer.substr(5).c_str(), NULL, 10);
-                        switch (code) {
-                            case 401:
-                                _this->inGame = false;
-                                break;
-                            case 404:
-                                _this->inGame = true;
-                                break;
-                            default:
-                                break;
                         }
 
                     }
 
                 }
+
             }
 
         }
