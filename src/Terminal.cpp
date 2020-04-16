@@ -17,7 +17,7 @@ void Terminal::sendMessage(int fd, const std::string& outputString) {
     send(fd, sMsg.c_str(), sMsg.length()+1, MSG_NOSIGNAL);
 }
 
-Terminal::Terminal(Game* game) : barrierGMLS(2), game(game), running(true), inGame(false), sockfd(0) {}
+Terminal::Terminal(Application* application, Game* game) : application(application), barrierGMLS(2), game(game), running(true), inGame(false), sockfd(0) {}
 
 void Terminal::sendMessage(const std::string& outputString) {
     if (isConnectedServer()) {
@@ -69,6 +69,7 @@ void Terminal::disconnectServer() {
         shutdown(sockfd, SHUT_RDWR);
         close(sockfd);
         thread.join();
+        application->resetUI();
         sockfd = 0;
         inGame = false;
     }

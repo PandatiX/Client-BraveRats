@@ -3,6 +3,7 @@
 
 #include <list>
 #include <string>
+#include <mutex>
 
 #include "Window.hpp"
 #include "Terminal.hpp"
@@ -11,6 +12,10 @@
 class Application {
 private:
     const char* appName = "BraveRats";
+    bool resetConnectionSettings;
+    std::mutex mutexrResetConnectionSettings;
+    bool refreshOnOpen;
+    std::mutex mutexRefeshOnOpen;
     std::list<std::string> history;
 
     Game game;
@@ -21,6 +26,7 @@ public:
     Application();
 
     void loop();
+    void resetUI();
 
     ~Application() = default;
 

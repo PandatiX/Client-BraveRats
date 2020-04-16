@@ -38,7 +38,7 @@ void Window::close() {
 }
 
 bool Window::shouldClose() const {
-    return glfwWindowShouldClose(handle);
+    return (bool)glfwWindowShouldClose(handle);
 }
 
 int Window::getKey(int keyCode) const {

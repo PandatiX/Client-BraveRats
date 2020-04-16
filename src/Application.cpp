@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <sstream>
 #include "Application.hpp"
 #include "../lib/imgui/imgui.h"
 #include "../lib/imgui/imgui_impl_glfw.h"
@@ -15,7 +14,10 @@ void textWithDetailDisplay(const char* main, const char* detail) {
     ImGui::TextColored(ImVec4(0.22f, 0.26f, 0.33f, 1.0f), "\t\t%s", detail);
 }
 
-Application::Application() : game(), window(&game, appName, 1920, 1080), terminal(&game) {}
+Application::Application() : game(), window(&game, appName, 1920, 1080), terminal(this, &game) {
+    resetConnectionSettings = true;
+    refreshOnOpen = true;
+}
 
 void Application::loop() {
 
@@ -49,9 +51,7 @@ void Application::loop() {
 
     char bufTerminal[16]{}, bufIP[16]{}, bufPort[8]{};
     std::list<std::string> games;
-    bool resetConnectionSettings = true,
-        refreshOnOpen = true,
-        cantConnectMessage = false;
+    bool cantConnectMessage = false;
 
     while (!window.shouldClose()) {
 
@@ -70,11 +70,13 @@ void Application::loop() {
             /***********************/
             /** CONNECTION WINDOW **/
             /***********************/
+            mutexrResetConnectionSettings.lock();
             if (resetConnectionSettings) {
                 sprintf(bufIP, "%s", DEFIP);
                 sprintf(bufPort, "%d", DEFPORT);
                 resetConnectionSettings = false;
             }
+            mutexrResetConnectionSettings.unlock();
 
             ImGui::Begin("Connection");
             ImGui::InputTextWithHint("IP", "XXX.XXX.XXX.XXX", bufIP, IM_ARRAYSIZE(bufIP));
@@ -117,8 +119,12 @@ void Application::loop() {
                         if (ImGui::Button("Disconnect")) {
                             terminal.disconnectServer();
                             terminal.clearHistory();
+                            mutexrResetConnectionSettings.lock();
                             resetConnectionSettings = true;
+                            mutexrResetConnectionSettings.unlock();
+                            mutexRefeshOnOpen.lock();
                             refreshOnOpen = true;
+                            mutexRefeshOnOpen.unlock();
                             strncpy(bufTerminal, "", 1);
                         }
 
@@ -222,10 +228,12 @@ void Application::loop() {
                 if (ImGui::Button("Start joinable game")) {
                     terminal.sendMessage("STRT 1");
                 } ImGui::SameLine();
+                mutexRefeshOnOpen.lock();
                 if (refreshOnOpen || ImGui::Button("Refresh")) {
                     games = terminal.getGames();
                     refreshOnOpen = false;
                 }
+                mutexRefeshOnOpen.unlock();
 
                 //Display games if there are available
                 int size = games.size();
@@ -259,4 +267,13 @@ void Application::loop() {
 
     }
 
+}
+
+void Application::resetUI() {
+    mutexrResetConnectionSettings.lock();
+    resetConnectionSettings = true;
+    mutexrResetConnectionSettings.unlock();
+    mutexRefeshOnOpen.lock();
+    refreshOnOpen = true;
+    mutexRefeshOnOpen.unlock();
 }

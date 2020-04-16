@@ -13,8 +13,11 @@
 #include "barriers/Barrier.hpp"
 #include "Game.hpp"
 
+class Application;
+
 class Terminal {
 private:
+    Application* application;
     Game* game;
 
     Barrier barrierGMLS;
@@ -29,7 +32,7 @@ private:
     void sendMessage(int, const std::string&);
 
 public:
-    Terminal(Game* game);
+    Terminal(Application*, Game*);
 
     static void start(Terminal*, std::string *);
     int connectServer(in_addr_t, uint16_t);
@@ -46,5 +49,7 @@ public:
 
     ~Terminal();
 };
+
+#include "Application.hpp"
 
 #endif //CLIENTBRAVERATS_TERMINAL_HPP
