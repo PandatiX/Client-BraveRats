@@ -167,10 +167,11 @@ void Application::loop() {
                         textWithDetailDisplay("CRDD", "draw cards at the beginning of the game");
                         textWithDetailDisplay("CRDP <CARD>", "play a card");
                         textWithDetailDisplay("CRDA", "ask for fighter's card as the spy");
-                        textWithDetailDisplay("CRDH [0/1]", "ask for game's history\n\t- [NONE]: ask for all the history\n\t- 0: ask for own history\n\t- 1: ask for fighter's history");
+                        textWithDetailDisplay("CRDH [0/1]", "ask for game's history\n\t- [NONE]: ask for all the history\n\t- 0: ask for all your history\n\t- 1: ask for your last history");
                         textWithDetailDisplay("WONP", "get play winner");
                         textWithDetailDisplay("PNTS", "get points");
                         textWithDetailDisplay("REVD", "acquittal");
+                        textWithDetailDisplay("PRMS", "if followed by GVAR, set the game's variante");
                         ImGui::Separator();
 
                         titleDisplay("CARDS");
@@ -190,6 +191,14 @@ void Application::loop() {
                         textWithDetailDisplay("402", "GAME_RESTARTED");
                         textWithDetailDisplay("403", "ACCESS_DENIED");
                         textWithDetailDisplay("404", "GAME_STARTED");
+                        ImGui::Separator();
+
+                        titleDisplay("PRMS GVAR");
+                        textWithDetailDisplay("0", "Default");
+                        textWithDetailDisplay("1", "Fast Rat");
+                        textWithDetailDisplay("2", "Princess");
+                        textWithDetailDisplay("3", "Random");
+                        textWithDetailDisplay("4", "Traitor");
 
                         ImGui::EndTabItem();
                     }
