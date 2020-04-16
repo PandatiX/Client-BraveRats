@@ -63,25 +63,11 @@ int Terminal::connectServer(in_addr_t IP, uint16_t port) {
 
 }
 
-int getSO_ERROR(int fd) {
-    int err = 1;
-    socklen_t len = sizeof err;
-    if (-1 == getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&err, &len))
-        std::cerr << "[FATAL ERROR] getSO_ERROR" << std::endl;
-    if (err)
-        errno = err;              // set errno to the socket SO_ERROR
-    return err;
-}
-
 void Terminal::disconnectServer() {
 
     if (isConnectedServer()) {
-        getSO_ERROR(sockfd);
-        if (shutdown(sockfd, SHUT_RDWR) < 0)
-            if (errno != ENOTCONN && errno != EINVAL)
-                std::cerr << "Shutdown" << std::endl;
-        if (close(sockfd) < 0)
-            std::cerr << "Close" << std::endl;
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
         thread.join();
         sockfd = 0;
         inGame = false;
